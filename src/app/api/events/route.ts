@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
-import { uploadToGCS } from "@/lib/storage";
+import { uploadToR2 } from "@/lib/storage";
 import { Event } from "@/models/Event";
 
 // ─── GET all events ──────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       const ext = imageFile.name.split(".").pop();
       imagePath = `events/${uuidv4()}.${ext}`;
-      imageUrl = await uploadToGCS(buffer, imagePath, imageFile.type);
+      imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
     }
 
     const event = await Event.create({ title, description, imageUrl, imagePath });

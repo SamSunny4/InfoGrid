@@ -1,57 +1,77 @@
-import { Storage } from "@google-cloud/storage";
+import { S3Client, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 
-const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME as string;
-const GCS_PROJECT_ID = process.env.GCS_PROJECT_ID as string;
-const GCS_KEY_FILENAME = process.env.GCS_KEY_FILENAME; // path to service account JSON
+const R2_ACCOUNT_ID   = process.env.R2_ACCOUNT_ID   as string;
+const R2_ACCESS_KEY   = process.env.R2_ACCESS_KEY    as string;
+const R2_SECRET_KEY   = process.env.R2_SECRET_KEY    as string;
+const R2_BUCKET_NAME  = process.env.R2_BUCKET_NAME   as string;
+// Optional: custom public domain (e.g. pub-xxx.r2.dev or your own domain)
+const R2_PUBLIC_URL   = process.env.R2_PUBLIC_URL    as string;
 
-if (!GCS_BUCKET_NAME || !GCS_PROJECT_ID) {
+if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY || !R2_SECRET_KEY || !R2_BUCKET_NAME) {
   throw new Error(
-    "Please define GCS_BUCKET_NAME and GCS_PROJECT_ID in .env.local"
+    "Please define R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY and R2_BUCKET_NAME in .env.local"
   );
 }
 
-// Initialise the GCS client.
-// When deploying to GCP (Cloud Run / App Engine) the SDK picks up credentials
-// automatically via Application Default Credentials. On a local machine, point
-// GCS_KEY_FILENAME to your service‑account JSON file.
-const storage = new Storage({
-  projectId: GCS_PROJECT_ID,
-  ...(GCS_KEY_FILENAME ? { keyFilename: GCS_KEY_FILENAME } : {}),
+const r2Client = new S3Client({
+  region: "auto",
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY,
+    secretAccessKey: R2_SECRET_KEY,
+  },
 });
 
-const bucket = storage.bucket(GCS_BUCKET_NAME);
-
 /**
- * Upload a file buffer to GCS and return the public URL.
- * The bucket must have "Uniform bucket-level access" turned on and
- * must have a public IAM binding (roles/storage.objectViewer for allUsers)
- * OR you can generate a signed URL instead.
+ * Upload a file buffer to Cloudflare R2 and return the public URL.
+ * The bucket must have "Public access" enabled in the R2 dashboard,
+ * or use a custom domain / Workers URL.
  */
-export async function uploadToGCS(
+export async function uploadToR2(
   buffer: Buffer,
   destination: string,
   mimeType: string
 ): Promise<string> {
-  const file = bucket.file(destination);
-
-  await file.save(buffer, {
-    metadata: { contentType: mimeType },
-    resumable: false,
+  const upload = new Upload({
+    client: r2Client,
+    params: {
+      Bucket: R2_BUCKET_NAME,
+      Key: destination,
+      Body: buffer,
+      ContentType: mimeType,
+    },
   });
 
-  // Make the file publicly readable
-  await file.makePublic();
+  await upload.done();
 
-  return `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${destination}`;
+  // Use the custom public URL if provided, otherwise fall back to the default R2 dev URL
+  const base = R2_PUBLIC_URL
+    ? R2_PUBLIC_URL.replace(/\/$/, "")
+    : `https://pub-${R2_ACCOUNT_ID}.r2.dev`;
+
+  return `${base}/${destination}`;
 }
 
 /**
- * Delete a file from GCS by its storage path (destination).
+ * Delete a file from Cloudflare R2 by its object key (destination).
  */
-export async function deleteFromGCS(destination: string): Promise<void> {
-  const file = bucket.file(destination);
-  const [exists] = await file.exists();
-  if (exists) await file.delete();
+export async function deleteFromR2(destination: string): Promise<void> {
+  if (!destination) return;
+
+  // Check if the object exists before attempting deletion
+  try {
+    await r2Client.send(
+      new HeadObjectCommand({ Bucket: R2_BUCKET_NAME, Key: destination })
+    );
+  } catch {
+    return; // Object doesn't exist — nothing to delete
+  }
+
+  await r2Client.send(
+    new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: destination })
+  );
 }
 
-export { bucket, storage };
+export { r2Client };
+

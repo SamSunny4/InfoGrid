@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { deleteFromGCS } from "@/lib/storage";
+import { deleteFromR2 } from "@/lib/storage";
 import { Poster } from "@/models/Poster";
 
 type Params = { params: Promise<{ id: string }> };
@@ -26,7 +26,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const item = await Poster.findById(id);
     if (!item) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
 
-    if (item.imagePath) await deleteFromGCS(item.imagePath);
+    if (item.imagePath) await deleteFromR2(item.imagePath);
     await item.deleteOne();
     return NextResponse.json({ success: true, message: "Deleted successfully" });
   } catch (error) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
-import { uploadToGCS, deleteFromGCS } from "@/lib/storage";
+import { uploadToR2, deleteFromR2 } from "@/lib/storage";
 import { News } from "@/models/News";
 
 // ─── GET all news ───────────────────────────────────────────────────────────
@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       const ext = imageFile.name.split(".").pop();
       imagePath = `news/${uuidv4()}.${ext}`;
-      imageUrl = await uploadToGCS(buffer, imagePath, imageFile.type);
+      imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
     }
 
     const news = await News.create({ title, description, imageUrl, imagePath });
     return NextResponse.json({ success: true, data: news }, { status: 201 });
   } catch (error) {
-    await deleteFromGCS((error as { imagePath?: string }).imagePath ?? "").catch(() => {});
+    await deleteFromR2((error as { imagePath?: string }).imagePath ?? "").catch(() => {});
     return NextResponse.json(
       { success: false, message: (error as Error).message },
       { status: 500 }

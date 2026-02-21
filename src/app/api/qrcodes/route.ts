@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
-import { uploadToGCS } from "@/lib/storage";
+import { uploadToR2 } from "@/lib/storage";
 import { QRCode } from "@/models/QRCode";
 
 // ─── GET all QR codes ────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await imageFile.arrayBuffer());
     const ext = imageFile.name.split(".").pop();
     const imagePath = `qrcodes/${uuidv4()}.${ext}`;
-    const imageUrl = await uploadToGCS(buffer, imagePath, imageFile.type);
+    const imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
 
     const qrcode = await QRCode.create({ title, imageUrl, imagePath });
     return NextResponse.json({ success: true, data: qrcode }, { status: 201 });

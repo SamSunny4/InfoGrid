@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
-import { uploadToGCS } from "@/lib/storage";
+import { uploadToR2 } from "@/lib/storage";
 import { Poster } from "@/models/Poster";
 
 // ─── GET all posters ─────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await imageFile.arrayBuffer());
     const ext = imageFile.name.split(".").pop();
     const imagePath = `posters/${uuidv4()}.${ext}`;
-    const imageUrl = await uploadToGCS(buffer, imagePath, imageFile.type);
+    const imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
 
     const poster = await Poster.create({ imageUrl, imagePath });
     return NextResponse.json({ success: true, data: poster }, { status: 201 });

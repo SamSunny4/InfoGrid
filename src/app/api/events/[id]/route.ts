@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
-import { uploadToGCS, deleteFromGCS } from "@/lib/storage";
+import { uploadToR2, deleteFromR2 } from "@/lib/storage";
 import { Event } from "@/models/Event";
 
 type Params = { params: Promise<{ id: string }> };
@@ -38,12 +38,12 @@ export async function PUT(request: NextRequest, { params }: Params) {
     let { imageUrl, imagePath } = existing;
 
     if (imageFile && imageFile.size > 0) {
-      if (existing.imagePath) await deleteFromGCS(existing.imagePath);
+      if (existing.imagePath) await deleteFromR2(existing.imagePath);
 
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       const ext = imageFile.name.split(".").pop();
       imagePath = `events/${uuidv4()}.${ext}`;
-      imageUrl = await uploadToGCS(buffer, imagePath, imageFile.type);
+      imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
     }
 
     const updated = await Event.findByIdAndUpdate(
@@ -65,7 +65,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const item = await Event.findById(id);
     if (!item) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
 
-    if (item.imagePath) await deleteFromGCS(item.imagePath);
+    if (item.imagePath) await deleteFromR2(item.imagePath);
     await item.deleteOne();
     return NextResponse.json({ success: true, message: "Deleted successfully" });
   } catch (error) {
