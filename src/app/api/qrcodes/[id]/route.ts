@@ -27,9 +27,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const existing = await QRCode.findById(id);
     if (!existing) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
 
-    const formData = await request.formData();
-    const title = formData.get("title") as string;
-    const imageFile = formData.get("image") as File | null;
+    const formData   = await request.formData();
+    const title       = formData.get("title")       as string;
+    const redirectUrl = formData.get("redirectUrl") as string | null;
+    const isActive    = formData.get("isActive") !== "false";
+    const imageFile   = formData.get("image")       as File | null;
 
     if (!title?.trim()) return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 });
 
@@ -46,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const updated = await QRCode.findByIdAndUpdate(
       id,
-      { title, imageUrl, imagePath },
+      { title, imageUrl, imagePath, redirectUrl: redirectUrl?.trim() ?? existing.redirectUrl, isActive },
       { new: true, runValidators: true }
     );
     return NextResponse.json({ success: true, data: updated });

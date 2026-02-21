@@ -23,8 +23,10 @@ export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    const formData = await request.formData();
-    const imageFile = formData.get("image") as File | null;
+    const formData   = await request.formData();
+    const imageFile  = formData.get("image")       as File | null;
+    const title      = formData.get("title")       as string | null;
+    const isPublished = formData.get("isPublished") === "true";
 
     if (!imageFile || imageFile.size === 0) {
       return NextResponse.json(
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     const imagePath = `posters/${uuidv4()}.${ext}`;
     const imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
 
-    const poster = await Poster.create({ imageUrl, imagePath });
+    const poster = await Poster.create({ title: title?.trim() || undefined, imageUrl, imagePath, isPublished });
     return NextResponse.json({ success: true, data: poster }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

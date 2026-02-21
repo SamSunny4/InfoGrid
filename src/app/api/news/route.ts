@@ -24,9 +24,11 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     const formData = await request.formData();
-    const title = formData.get("title") as string;
+    const title       = formData.get("title")       as string;
     const description = formData.get("description") as string;
-    const imageFile = formData.get("image") as File | null;
+    const isPublished = formData.get("isPublished") === "true";
+    const priority    = Number(formData.get("priority") ?? 5);
+    const imageFile   = formData.get("image")       as File | null;
 
     if (!title?.trim()) {
       return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 });
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
       imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
     }
 
-    const news = await News.create({ title, description, imageUrl, imagePath });
+    const news = await News.create({ title, description, imageUrl, imagePath, isPublished, priority });
     return NextResponse.json({ success: true, data: news }, { status: 201 });
   } catch (error) {
     await deleteFromR2((error as { imagePath?: string }).imagePath ?? "").catch(() => {});

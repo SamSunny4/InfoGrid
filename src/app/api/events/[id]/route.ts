@@ -27,10 +27,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const existing = await Event.findById(id);
     if (!existing) return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
 
-    const formData = await request.formData();
-    const title = formData.get("title") as string;
+    const formData    = await request.formData();
+    const title       = formData.get("title")       as string;
     const description = formData.get("description") as string;
-    const imageFile = formData.get("image") as File | null;
+    const isPublished = formData.get("isPublished") === "true";
+    const eventDateRaw = formData.get("eventDate")  as string | null;
+    const eventDate   = eventDateRaw ? new Date(eventDateRaw) : existing.eventDate;
+    const imageFile   = formData.get("image")       as File | null;
 
     if (!title?.trim()) return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 });
     if (!description?.trim()) return NextResponse.json({ success: false, message: "Description is required" }, { status: 400 });
@@ -48,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const updated = await Event.findByIdAndUpdate(
       id,
-      { title, description, imageUrl, imagePath },
+      { title, description, imageUrl, imagePath, isPublished, eventDate },
       { new: true, runValidators: true }
     );
     return NextResponse.json({ success: true, data: updated });
