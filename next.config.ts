@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
         hostname: "*.r2.cloudflarestorage.com",
         pathname: "/**",
       },
+      {
+        // Any external HTTPS image (e.g. NewsAPI article thumbnails)
+        protocol: "https",
+        hostname: "**",
+        pathname: "/**",
+      },
     ],
   },
 };
