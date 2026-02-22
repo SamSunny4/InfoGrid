@@ -4,30 +4,16 @@ const sections = [
   {
     href: "/admin/news",
     title: "News",
-    description: "Manage news articles with titles, descriptions, and cover images.",
+    description: "Manage news articles with titles, descriptions, categories, and cover images.",
     icon: "◈",
     colorClass: "a-color-blue",
   },
   {
     href: "/admin/events",
     title: "Events",
-    description: "Create and manage upcoming events with details and imagery.",
+    description: "Create and manage upcoming events with date, time, and registration links.",
     icon: "◷",
     colorClass: "a-color-green",
-  },
-  {
-    href: "/admin/posters",
-    title: "Posters",
-    description: "Upload posters shown in the carousel on the display board.",
-    icon: "⬡",
-    colorClass: "a-color-purple",
-  },
-  {
-    href: "/admin/qrcodes",
-    title: "QR Codes",
-    description: "Add titled QR codes for easy scanning on the display board.",
-    icon: "⊡",
-    colorClass: "a-color-orange",
   },
 ];
 

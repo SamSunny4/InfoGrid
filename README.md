@@ -80,10 +80,10 @@ The app connects to MongoDB Atlas through a cached Mongoose connection defined i
 |---|---|---|
 | `title` | String | Required, max 200 chars |
 | `description` | String | Required, max 2000 chars |
-| `imageUrl` | String | Public URL from R2 |
-| `imagePath` | String | R2 object key used for deletion |
-| `isPublished` | Boolean | Default `false` |
-| `priority` | Number | 1–10, higher = shown first, default `5` |
+| `imageUrl` | String | Public URL (R2 or external) |
+| `imagePath` | String | R2 object key (empty if external image) |
+| `newsUrl` | String | Original article URL |
+| `category` | String | e.g. General, AI, Technology — default `General` |
 | `createdAt` | Date | Auto-managed by Mongoose |
 | `updatedAt` | Date | Auto-managed by Mongoose |
 
@@ -95,31 +95,9 @@ The app connects to MongoDB Atlas through a cached Mongoose connection defined i
 | `description` | String | Required, max 2000 chars |
 | `imageUrl` | String | Public URL from R2 |
 | `imagePath` | String | R2 object key used for deletion |
-| `isPublished` | Boolean | Default `false` |
 | `eventDate` | Date | Optional event date |
-| `createdAt` | Date | Auto-managed |
-| `updatedAt` | Date | Auto-managed |
-
-#### `posters`
-
-| Field | Type | Notes |
-|---|---|---|
-| `title` | String | Optional, max 200 chars |
-| `imageUrl` | String | Required, public URL from R2 |
-| `imagePath` | String | Required, R2 object key |
-| `isPublished` | Boolean | Default `false` |
-| `createdAt` | Date | Auto-managed |
-| `updatedAt` | Date | Auto-managed |
-
-#### `qrcodes`
-
-| Field | Type | Notes |
-|---|---|---|
-| `title` | String | Required, max 200 chars |
-| `imageUrl` | String | Required, public URL from R2 |
-| `imagePath` | String | Required, R2 object key |
-| `redirectUrl` | String | Optional URL the QR code encodes |
-| `isActive` | Boolean | Default `true` |
+| `eventTime` | String | Optional time string e.g. `14:30` |
+| `eventUrl` | String | Optional registration / info link |
 | `createdAt` | Date | Auto-managed |
 | `updatedAt` | Date | Auto-managed |
 
@@ -154,23 +132,17 @@ src/
 │   ├── admin/                # Admin panel pages
 │   │   ├── page.tsx          # Admin dashboard
 │   │   ├── news/page.tsx
-│   │   ├── events/page.tsx
-│   │   ├── posters/page.tsx
-│   │   └── qrcodes/page.tsx
+│   │   └── events/page.tsx
 │   └── api/                  # REST API routes
 │       ├── news/
-│       ├── events/
-│       ├── posters/
-│       └── qrcodes/
+│       └── events/
 ├── components/               # Shared UI components
 ├── lib/
 │   ├── mongodb.ts            # Mongoose connection helper
 │   └── storage.ts            # Cloudflare R2 upload/delete helpers
 └── models/                   # Mongoose models
     ├── News.ts
-    ├── Event.ts
-    ├── Poster.ts
-    └── QRCode.ts
+    └── Event.ts
 ```
 
 ---
@@ -189,9 +161,3 @@ All routes follow REST conventions and are prefixed with `/api/`.
 | GET | `/api/events` | List all events |
 | POST | `/api/events` | Create an event |
 | GET/PUT/DELETE | `/api/events/[id]` | Single event operations |
-| GET | `/api/posters` | List all posters |
-| POST | `/api/posters` | Upload a poster |
-| GET/PUT/DELETE | `/api/posters/[id]` | Single poster operations |
-| GET | `/api/qrcodes` | List all QR codes |
-| POST | `/api/qrcodes` | Create a QR code entry |
-| GET/PUT/DELETE | `/api/qrcodes/[id]` | Single QR code operations |

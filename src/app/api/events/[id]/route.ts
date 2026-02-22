@@ -30,9 +30,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const formData    = await request.formData();
     const title       = formData.get("title")       as string;
     const description = formData.get("description") as string;
-    const isPublished = formData.get("isPublished") === "true";
     const eventDateRaw = formData.get("eventDate")  as string | null;
     const eventDate   = eventDateRaw ? new Date(eventDateRaw) : existing.eventDate;
+    const eventTime   = (formData.get("eventTime")  as string | null)?.trim() ?? existing.eventTime ?? "";
+    const eventUrl    = (formData.get("eventUrl")   as string | null)?.trim() ?? existing.eventUrl ?? "";
     const imageFile   = formData.get("image")       as File | null;
 
     if (!title?.trim()) return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 });
@@ -51,7 +52,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const updated = await Event.findByIdAndUpdate(
       id,
-      { title, description, imageUrl, imagePath, isPublished, eventDate },
+      { title, description, imageUrl, imagePath, eventDate, eventTime, eventUrl },
       { new: true, runValidators: true }
     );
     return NextResponse.json({ success: true, data: updated });

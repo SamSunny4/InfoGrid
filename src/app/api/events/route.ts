@@ -26,9 +26,10 @@ export async function POST(request: NextRequest) {
     const formData    = await request.formData();
     const title       = formData.get("title")       as string;
     const description = formData.get("description") as string;
-    const isPublished = formData.get("isPublished") === "true";
     const eventDateRaw = formData.get("eventDate")  as string | null;
     const eventDate   = eventDateRaw ? new Date(eventDateRaw) : undefined;
+    const eventTime   = (formData.get("eventTime")  as string | null)?.trim() ?? "";
+    const eventUrl    = (formData.get("eventUrl")   as string | null)?.trim() ?? "";
     const imageFile   = formData.get("image")       as File | null;
 
     if (!title?.trim()) {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
     }
 
-    const event = await Event.create({ title, description, imageUrl, imagePath, isPublished, eventDate });
+    const event = await Event.create({ title, description, imageUrl, imagePath, eventDate, eventTime, eventUrl });
     return NextResponse.json({ success: true, data: event }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

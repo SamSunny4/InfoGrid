@@ -5,8 +5,8 @@ export interface INews extends Document {
   description: string;
   imageUrl: string;
   imagePath: string; // R2 object key for deletion
-  isPublished: boolean;
-  priority: number;
+  newsUrl: string;   // Original article URL
+  category: string;  // e.g. "AI", "Technology", "Science"
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,9 +27,8 @@ const NewsSchema = new Schema<INews>(
     },
     imageUrl:  { type: String, default: "" },
     imagePath: { type: String, default: "" },
-    isPublished: { type: Boolean, default: false, index: true },
-    // Higher number = shown first (1 = low, 10 = high)
-    priority:   { type: Number, default: 5, min: 1, max: 10, index: true },
+    newsUrl:   { type: String, default: "", trim: true },
+    category:  { type: String, default: "General", trim: true, index: true },
   },
   { timestamps: true }
 );

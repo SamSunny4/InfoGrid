@@ -5,8 +5,9 @@ export interface IEvent extends Document {
   description: string;
   imageUrl: string;
   imagePath: string; // R2 object key for deletion
-  isPublished: boolean;
   eventDate?: Date;
+  eventTime?: string; // e.g. "10:30 AM"
+  eventUrl?: string;  // Link to event details / registration
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,10 +26,11 @@ const EventSchema = new Schema<IEvent>(
       trim: true,
       maxlength: [2000, "Description cannot exceed 2000 characters"],
     },
-    imageUrl:    { type: String, default: "" },
-    imagePath:   { type: String, default: "" },
-    isPublished: { type: Boolean, default: false, index: true },
-    eventDate:   { type: Date, index: true },
+    imageUrl:  { type: String, default: "" },
+    imagePath: { type: String, default: "" },
+    eventDate: { type: Date, index: true },
+    eventTime: { type: String, default: "", trim: true },
+    eventUrl:  { type: String, default: "", trim: true },
   },
   { timestamps: true }
 );

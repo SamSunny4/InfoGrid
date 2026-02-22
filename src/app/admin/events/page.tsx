@@ -8,10 +8,13 @@ interface EventItem {
   title: string;
   description: string;
   imageUrl: string;
+  eventDate: string;
+  eventTime: string;
+  eventUrl: string;
   createdAt: string;
 }
 
-const EMPTY_FORM = { title: "", description: "" };
+const EMPTY_FORM = { title: "", description: "", eventDate: "", eventTime: "", eventUrl: "" };
 
 export default function EventsPage() {
   const [items, setItems] = useState<EventItem[]>([]);
@@ -51,7 +54,13 @@ export default function EventsPage() {
 
   const handleEdit = (item: EventItem) => {
     setEditingId(item._id);
-    setForm({ title: item.title, description: item.description });
+    setForm({
+      title: item.title,
+      description: item.description,
+      eventDate: item.eventDate ? item.eventDate.slice(0, 10) : "",
+      eventTime: item.eventTime ?? "",
+      eventUrl: item.eventUrl ?? "",
+    });
     setImagePreview(item.imageUrl);
     setImageFile(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -74,6 +83,9 @@ export default function EventsPage() {
     const fd = new FormData();
     fd.append("title", form.title);
     fd.append("description", form.description);
+    if (form.eventDate) fd.append("eventDate", form.eventDate);
+    if (form.eventTime) fd.append("eventTime", form.eventTime);
+    if (form.eventUrl)  fd.append("eventUrl", form.eventUrl);
     if (imageFile) fd.append("image", imageFile);
 
     const url = editingId ? `/api/events/${editingId}` : "/api/events";
@@ -123,7 +135,37 @@ export default function EventsPage() {
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Event details, date, venue…"
+                placeholder="Event details, venue, speaker…"
+              />
+            </div>
+            <div className="a-form-row">
+              <div className="a-field">
+                <label className="a-label">Event Date</label>
+                <input
+                  className="a-input"
+                  type="date"
+                  value={form.eventDate}
+                  onChange={(e) => setForm({ ...form, eventDate: e.target.value })}
+                />
+              </div>
+              <div className="a-field">
+                <label className="a-label">Event Time</label>
+                <input
+                  className="a-input"
+                  type="time"
+                  value={form.eventTime}
+                  onChange={(e) => setForm({ ...form, eventTime: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="a-field">
+              <label className="a-label">Event URL</label>
+              <input
+                className="a-input"
+                type="url"
+                value={form.eventUrl}
+                onChange={(e) => setForm({ ...form, eventUrl: e.target.value })}
+                placeholder="https://… (registration / info page)"
               />
             </div>
             <div className="a-field">
@@ -172,7 +214,17 @@ export default function EventsPage() {
               <div className="a-item-body">
                 <div className="a-item-title">{item.title}</div>
                 <div className="a-item-desc">{item.description}</div>
-                <div className="a-item-meta">{new Date(item.createdAt).toLocaleDateString()}</div>
+                <div className="a-item-meta">
+                  {item.eventDate && (
+                    <span>
+                      {new Date(item.eventDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                      {item.eventTime && ` · ${item.eventTime}`}
+                    </span>
+                  )}
+                  {item.eventUrl && (
+                    <a href={item.eventUrl} target="_blank" rel="noopener noreferrer" className="a-item-link">↗ Info</a>
+                  )}
+                </div>
               </div>
               <div className="a-item-actions">
                 <button onClick={() => handleEdit(item)} className="a-btn a-btn-ghost a-btn-sm">Edit</button>

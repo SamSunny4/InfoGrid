@@ -8,6 +8,8 @@ interface NewsItem {
   title: string;
   description: string;
   imageUrl: string;
+  newsUrl: string;
+  category: string;
   createdAt: string;
 }
 
@@ -20,7 +22,8 @@ interface FetchedArticle {
   publishedAt: string;
 }
 
-const EMPTY_FORM = { title: "", description: "" };
+const CATEGORIES = ["General", "AI", "Technology", "Science", "Research", "Industry", "Education", "Other"];
+const EMPTY_FORM = { title: "", description: "", newsUrl: "", category: "General" };
 
 export default function NewsPage() {
   // ── existing news state ──────────────────────────────────────────────
@@ -35,20 +38,21 @@ export default function NewsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── auto-fetch state ─────────────────────────────────────────────────
-  const [fetchOpen, setFetchOpen]             = useState(false);
-  const [fetchQuery, setFetchQuery]           = useState("artificial intelligence");
-  const [fetching, setFetching]               = useState(false);
-  const [fetchError, setFetchError]           = useState("");
-  const [articles, setArticles]               = useState<FetchedArticle[]>([]);
-  const [addingIdx, setAddingIdx]             = useState<number | null>(null);
-  const [addedIdxs, setAddedIdxs]             = useState<Set<number>>(new Set());
+  const [fetchOpen, setFetchOpen]         = useState(false);
+  const [fetchQuery, setFetchQuery]       = useState("artificial intelligence");
+  const [fetching, setFetching]           = useState(false);
+  const [fetchError, setFetchError]       = useState("");
+  const [articles, setArticles]           = useState<FetchedArticle[]>([]);
+  const [addingIdx, setAddingIdx]         = useState<number | null>(null);
+  const [addedIdxs, setAddedIdxs]         = useState<Set<number>>(new Set());
   // Review modal
-  const [reviewArticle, setReviewArticle]     = useState<FetchedArticle | null>(null);
-  const [reviewIdx, setReviewIdx]             = useState<number | null>(null);
-  const [reviewTitle, setReviewTitle]         = useState("");
-  const [reviewDesc, setReviewDesc]           = useState("");
-  const [reviewSaving, setReviewSaving]       = useState(false);
-  const [reviewError, setReviewError]         = useState("");
+  const [reviewArticle, setReviewArticle] = useState<FetchedArticle | null>(null);
+  const [reviewIdx, setReviewIdx]         = useState<number | null>(null);
+  const [reviewTitle, setReviewTitle]     = useState("");
+  const [reviewDesc, setReviewDesc]       = useState("");
+  const [reviewCategory, setReviewCategory] = useState("AI");
+  const [reviewSaving, setReviewSaving]   = useState(false);
+  const [reviewError, setReviewError]     = useState("");
 
   const triggerRefresh = () => setRefresh((n) => n + 1);
 
@@ -78,7 +82,7 @@ export default function NewsPage() {
 
   const handleEdit = (item: NewsItem) => {
     setEditingId(item._id);
-    setForm({ title: item.title, description: item.description });
+    setForm({ title: item.title, description: item.description, newsUrl: item.newsUrl ?? "", category: item.category ?? "General" });
     setImagePreview(item.imageUrl);
     setImageFile(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -99,6 +103,8 @@ export default function NewsPage() {
     const fd = new FormData();
     fd.append("title", form.title);
     fd.append("description", form.description);
+    fd.append("newsUrl", form.newsUrl);
+    fd.append("category", form.category);
     if (imageFile) fd.append("image", imageFile);
     const url    = editingId ? `/api/news/${editingId}` : "/api/news";
     const method = editingId ? "PUT" : "POST";
@@ -138,6 +144,7 @@ export default function NewsPage() {
     setReviewIdx(idx);
     setReviewTitle(article.title);
     setReviewDesc(article.description ?? "");
+    setReviewCategory("AI");
     setReviewError("");
   };
 
@@ -159,6 +166,8 @@ export default function NewsPage() {
     const fd = new FormData();
     fd.append("title", reviewTitle);
     fd.append("description", reviewDesc);
+    fd.append("category", reviewCategory);
+    fd.append("newsUrl", reviewArticle.url);
     if (reviewArticle.urlToImage) fd.append("imageSourceUrl", reviewArticle.urlToImage);
 
     const res  = await fetch("/api/news", { method: "POST", body: fd });
@@ -200,10 +209,9 @@ export default function NewsPage() {
         {fetchOpen && (
           <div className="a-fetch-body">
             <p className="a-fetch-hint">
-              Search for real news articles and import them directly into InfoGrid. Images are
-              automatically downloaded and stored in your R2 bucket.
+              Search for real news articles and import them directly into InfoGrid. The article URL
+              and image are saved automatically.
             </p>
-
             <div className="a-fetch-search-row">
               <input
                 className="a-input a-fetch-search-input"
@@ -213,11 +221,7 @@ export default function NewsPage() {
                 onChange={(e) => setFetchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleFetch()}
               />
-              <button
-                className="a-btn a-btn-primary"
-                onClick={handleFetch}
-                disabled={fetching}
-              >
+              <button className="a-btn a-btn-primary" onClick={handleFetch} disabled={fetching}>
                 {fetching ? <><span className="a-spinner" /> Fetching…</> : "Search"}
               </button>
             </div>
@@ -229,19 +233,13 @@ export default function NewsPage() {
                 <p className="a-fetch-results-label">{articles.length} articles found — click a card to review &amp; add</p>
                 <div className="a-fetch-grid">
                   {articles.map((article, idx) => {
-                    const added   = addedIdxs.has(idx);
-                    const adding  = addingIdx === idx;
+                    const added  = addedIdxs.has(idx);
+                    const adding = addingIdx === idx;
                     return (
                       <div key={idx} className={`a-fetch-card${added ? " a-fetch-card--added" : ""}`}>
                         <div className="a-fetch-card-img">
                           {article.urlToImage ? (
-                            <Image
-                              src={article.urlToImage}
-                              alt={article.title}
-                              fill
-                              style={{ objectFit: "cover" }}
-                              unoptimized
-                            />
+                            <Image src={article.urlToImage} alt={article.title} fill style={{ objectFit: "cover" }} unoptimized />
                           ) : (
                             <div className="a-fetch-card-no-img">◈</div>
                           )}
@@ -255,22 +253,11 @@ export default function NewsPage() {
                           {added ? (
                             <span className="a-fetch-card-added">✓ Added</span>
                           ) : (
-                            <button
-                              className="a-btn a-btn-primary a-btn-sm"
-                              onClick={() => openReview(article, idx)}
-                              disabled={adding}
-                            >
+                            <button className="a-btn a-btn-primary a-btn-sm" onClick={() => openReview(article, idx)} disabled={adding}>
                               {adding ? <><span className="a-spinner" /> Adding…</> : "Review & Add"}
                             </button>
                           )}
-                          <a
-                            href={article.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="a-fetch-card-link"
-                          >
-                            Source ↗
-                          </a>
+                          <a href={article.url} target="_blank" rel="noopener noreferrer" className="a-fetch-card-link">Source ↗</a>
                         </div>
                       </div>
                     );
@@ -290,52 +277,36 @@ export default function NewsPage() {
               <span className="a-modal-title">Review Article</span>
               <button className="a-modal-close" onClick={closeReview}>✕</button>
             </div>
-
             {reviewArticle.urlToImage && (
               <div className="a-modal-img">
-                <Image
-                  src={reviewArticle.urlToImage}
-                  alt={reviewArticle.title}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  unoptimized
-                />
+                <Image src={reviewArticle.urlToImage} alt={reviewArticle.title} fill style={{ objectFit: "cover" }} unoptimized />
               </div>
             )}
-
             <div className="a-modal-body">
               <p className="a-modal-source-label">
                 {reviewArticle.source.name} — {new Date(reviewArticle.publishedAt).toLocaleDateString()}
               </p>
-
               <div className="a-field" style={{ marginBottom: 12 }}>
                 <label className="a-label">Title <span className="a-required">*</span></label>
-                <input
-                  className="a-input"
-                  type="text"
-                  value={reviewTitle}
-                  onChange={(e) => setReviewTitle(e.target.value)}
-                />
+                <input className="a-input" type="text" value={reviewTitle} onChange={(e) => setReviewTitle(e.target.value)} />
               </div>
-
               <div className="a-field" style={{ marginBottom: 12 }}>
                 <label className="a-label">Description <span className="a-required">*</span></label>
-                <textarea
-                  className="a-textarea"
-                  rows={4}
-                  value={reviewDesc}
-                  onChange={(e) => setReviewDesc(e.target.value)}
-                />
+                <textarea className="a-textarea" rows={3} value={reviewDesc} onChange={(e) => setReviewDesc(e.target.value)} />
               </div>
-
+              <div className="a-field" style={{ marginBottom: 12 }}>
+                <label className="a-label">Category</label>
+                <select className="a-select" value={reviewCategory} onChange={(e) => setReviewCategory(e.target.value)}>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="a-field" style={{ marginBottom: 12 }}>
+                <label className="a-label">Article URL</label>
+                <input className="a-input" type="url" value={reviewArticle.url} readOnly style={{ opacity: 0.6 }} />
+              </div>
               {reviewError && <div className="a-alert-error" style={{ marginBottom: 12 }}>{reviewError}</div>}
-
               <div className="a-btn-row">
-                <button
-                  className="a-btn a-btn-primary"
-                  onClick={handleAddFromReview}
-                  disabled={reviewSaving}
-                >
+                <button className="a-btn a-btn-primary" onClick={handleAddFromReview} disabled={reviewSaving}>
                   {reviewSaving ? <><span className="a-spinner" /> Saving…</> : "Confirm & Add to News"}
                 </button>
                 <button className="a-btn a-btn-ghost" onClick={closeReview}>Cancel</button>
@@ -355,23 +326,23 @@ export default function NewsPage() {
           <form onSubmit={handleSubmit} className="a-form">
             <div className="a-field">
               <label className="a-label">Title <span className="a-required">*</span></label>
-              <input
-                className="a-input"
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="News headline"
-              />
+              <input className="a-input" type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="News headline" />
             </div>
             <div className="a-field">
               <label className="a-label">Description <span className="a-required">*</span></label>
-              <textarea
-                className="a-textarea"
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="News content…"
-              />
+              <textarea className="a-textarea" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="News content…" />
+            </div>
+            <div className="a-form-row">
+              <div className="a-field">
+                <label className="a-label">Category</label>
+                <select className="a-select" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="a-field" style={{ flex: 2 }}>
+                <label className="a-label">Article URL</label>
+                <input className="a-input" type="url" value={form.newsUrl} onChange={(e) => setForm({ ...form, newsUrl: e.target.value })} placeholder="https://…" />
+              </div>
             </div>
             <div className="a-field">
               <label className="a-label">Image</label>
@@ -392,9 +363,7 @@ export default function NewsPage() {
               <button type="submit" disabled={loading} className="a-btn a-btn-primary">
                 {loading ? <><span className="a-spinner" /> Saving…</> : editingId ? "Update" : "Add News"}
               </button>
-              {editingId && (
-                <button type="button" onClick={resetForm} className="a-btn a-btn-ghost">Cancel</button>
-              )}
+              {editingId && <button type="button" onClick={resetForm} className="a-btn a-btn-ghost">Cancel</button>}
             </div>
           </form>
         </div>
@@ -417,9 +386,15 @@ export default function NewsPage() {
                 </div>
               )}
               <div className="a-item-body">
-                <div className="a-item-title">{item.title}</div>
+                <div className="a-item-title">
+                  {item.title}
+                  {item.category && <span className="a-item-badge">{item.category}</span>}
+                </div>
                 <div className="a-item-desc">{item.description}</div>
-                <div className="a-item-meta">{new Date(item.createdAt).toLocaleDateString()}</div>
+                <div className="a-item-meta">
+                  {new Date(item.createdAt).toLocaleDateString()}
+                  {item.newsUrl && <a href={item.newsUrl} target="_blank" rel="noopener noreferrer" className="a-item-link">↗ Source</a>}
+                </div>
               </div>
               <div className="a-item-actions">
                 <button onClick={() => handleEdit(item)} className="a-btn a-btn-ghost a-btn-sm">Edit</button>
@@ -432,3 +407,4 @@ export default function NewsPage() {
     </div>
   );
 }
+

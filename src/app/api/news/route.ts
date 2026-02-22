@@ -8,7 +8,7 @@ import { News } from "@/models/News";
 export async function GET() {
   try {
     await connectToDatabase();
-    const news = await News.find().sort({ createdAt: -1 });
+    const news = await News.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, data: news });
   } catch (error) {
     return NextResponse.json(
@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const title          = formData.get("title")          as string;
     const description    = formData.get("description")    as string;
-    const isPublished    = formData.get("isPublished") === "true";
-    const priority       = Number(formData.get("priority") ?? 5);
+    const category       = (formData.get("category")       as string | null)?.trim() || "General";
+    const newsUrl        = (formData.get("newsUrl")        as string | null)?.trim() ?? "";
     const imageFile      = formData.get("image")          as File | null;
     const imageSourceUrl = (formData.get("imageSourceUrl") as string | null)?.trim() ?? "";
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       imageUrl = imageSourceUrl;
     }
 
-    const news = await News.create({ title, description, imageUrl, imagePath, isPublished, priority });
+    const news = await News.create({ title, description, imageUrl, imagePath, newsUrl, category });
     return NextResponse.json({ success: true, data: news }, { status: 201 });
   } catch (error) {
     await deleteFromR2((error as { imagePath?: string }).imagePath ?? "").catch(() => {});

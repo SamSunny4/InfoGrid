@@ -7,11 +7,9 @@ import { getSession } from "@/lib/session";
 import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
-  { href: "/admin",         label: "Dashboard", icon: "⊞" },
-  { href: "/admin/news",    label: "News",       icon: "◈" },
-  { href: "/admin/events",  label: "Events",     icon: "◷" },
-  { href: "/admin/posters", label: "Posters",    icon: "⬡" },
-  { href: "/admin/qrcodes", label: "QR Codes",   icon: "⊡" },
+  { href: "/admin",        label: "Dashboard", icon: "⊞" },
+  { href: "/admin/news",   label: "News",       icon: "◈" },
+  { href: "/admin/events", label: "Events",     icon: "◷" },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

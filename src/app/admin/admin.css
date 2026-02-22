@@ -440,6 +440,13 @@ body:has(.admin-root) {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
+}
+
+.a-form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .a-label {
@@ -471,6 +478,25 @@ body:has(.admin-root) {
 .a-input::placeholder,
 .a-textarea::placeholder {
   color: var(--a-text-muted);
+}
+
+.a-select {
+  background: var(--a-bg-2);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-radius);
+  color: var(--a-text-primary);
+  font-size: 13.5px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--a-transition), box-shadow var(--a-transition);
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.a-select:focus {
+  border-color: var(--a-blue);
+  box-shadow: 0 0 0 3px var(--a-blue-dim);
 }
 
 .a-input:hover,
@@ -728,6 +754,33 @@ body:has(.admin-root) {
   font-size: 11px;
   color: var(--a-text-muted);
   margin-top: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.a-item-badge {
+  display: inline-block;
+  background: var(--a-blue-dim);
+  color: var(--a-blue);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+.a-item-link {
+  color: var(--a-accent);
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.a-item-link:hover {
+  text-decoration: underline;
 }
 
 .a-item-actions {
