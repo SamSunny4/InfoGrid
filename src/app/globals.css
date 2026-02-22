@@ -28,7 +28,6 @@ html, body, h1, h2, h3, h4, h5, h6, p, ul, ol, li {
 html, body {
   width: 1080px;
   height: 1920px;
-  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sf-pro), -apple-system, BlinkMacSystemFont,
