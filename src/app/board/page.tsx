@@ -1,9 +1,7 @@
 import Image from "next/image";
 import { connectToDatabase } from "@/lib/mongodb";
 import { News, INews } from "@/models/News";
-import { Poster, IPoster } from "@/models/Poster";
 import { Event, IEvent } from "@/models/Event";
-import { QRCode, IQRCode } from "@/models/QRCode";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -16,23 +14,13 @@ function fmtDate(d?: Date | string | null) {
   });
 }
 
-function fmtTime(d?: Date | string | null) {
-  if (!d) return "";
-  return new Date(d).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 async function fetchAll() {
   await connectToDatabase();
-  const [news, posters, events, qrcodes] = await Promise.all([
-    News.find().sort({ priority: -1, createdAt: -1 }).lean<INews[]>(),
-    Poster.find().sort({ createdAt: -1 }).lean<IPoster[]>(),
+  const [news, events] = await Promise.all([
+    News.find().sort({ createdAt: -1 }).lean<INews[]>(),
     Event.find().sort({ eventDate: 1, createdAt: -1 }).lean<IEvent[]>(),
-    QRCode.find().sort({ createdAt: -1 }).lean<IQRCode[]>(),
   ]);
-  return { news, posters, events, qrcodes };
+  return { news, events };
 }
 
 // ── Section heading ──────────────────────────────────────────────────────────
@@ -51,22 +39,6 @@ function SectionHeading({
       <h2 className={`text-[28px] font-bold ${accent}`}>{title}</h2>
       <span className="mb-1 text-[14px] text-gray-400">{count} record{count !== 1 ? "s" : ""}</span>
     </div>
-  );
-}
-
-// ── Status badge ─────────────────────────────────────────────────────────────
-
-function Badge({ on, labels = ["Published", "Draft"] }: { on: boolean; labels?: [string, string] }) {
-  return (
-    <span
-      className={`inline-block rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-        on
-          ? "bg-green-100 text-green-700"
-          : "bg-gray-100 text-gray-500"
-      }`}
-    >
-      {on ? labels[0] : labels[1]}
-    </span>
   );
 }
 
@@ -118,7 +90,7 @@ function Empty({ label }: { label: string }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function BoardPage() {
-  const { news, posters, events, qrcodes } = await fetchAll();
+  const { news, events } = await fetchAll();
 
   return (
     <div style={{ minWidth: "100vw", minHeight: "100vh" }} className="bg-gray-50 px-10 py-10">
@@ -160,19 +132,17 @@ export default async function BoardPage() {
                 className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm"
               >
                 <Thumb src={item.imageUrl || undefined} alt={item.title} />
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
-                    {item.title}
-                  </h3>
-                  <Badge on={item.isPublished} />
-                </div>
+                <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
+                  {item.title}
+                </h3>
                 <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500">
                   {item.description}
                 </p>
                 <div className="mt-auto flex flex-col gap-1 border-t border-gray-100 pt-3">
-                  <MetaRow label="Priority" value={`${item.priority} / 10`} />
+                  <MetaRow label="Category" value={item.category} />
                   <MetaRow label="Created" value={fmtDate(item.createdAt)} />
                   <MetaRow label="Updated" value={fmtDate(item.updatedAt)} />
+                  {item.newsUrl && <MetaRow label="URL" value={<a href={item.newsUrl} target="_blank" rel="noopener noreferrer" className="break-all text-blue-500 hover:underline">{item.newsUrl}</a>} />}
                   {item.imagePath && <MetaRow label="R2 key" value={<span className="break-all font-mono text-[11px] text-gray-400">{item.imagePath}</span>} />}
                 </div>
               </article>
@@ -199,24 +169,19 @@ export default async function BoardPage() {
                 </div>
                 {/* Content column */}
                 <div className="flex flex-1 flex-col gap-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
-                      {item.title}
-                    </h3>
-                    <Badge on={item.isPublished} />
-                  </div>
+                  <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
+                    {item.title}
+                  </h3>
                   <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500">
                     {item.description}
                   </p>
                   <div className="mt-auto flex flex-col gap-1 border-t border-gray-100 pt-3">
                     <MetaRow
                       label="Date"
-                      value={
-                        item.eventDate
-                          ? `${fmtDate(item.eventDate)}  ${fmtTime(item.eventDate)}`
-                          : "Not set"
-                      }
+                      value={item.eventDate ? fmtDate(item.eventDate) : "Not set"}
                     />
+                    {item.eventTime && <MetaRow label="Time" value={item.eventTime} />}
+                    {item.eventUrl && <MetaRow label="URL" value={<a href={item.eventUrl} target="_blank" rel="noopener noreferrer" className="break-all text-blue-500 hover:underline">{item.eventUrl}</a>} />}
                     <MetaRow label="Created" value={fmtDate(item.createdAt)} />
                     {item.imagePath && <MetaRow label="R2 key" value={<span className="break-all font-mono text-[11px] text-gray-400">{item.imagePath}</span>} />}
                   </div>
@@ -227,93 +192,6 @@ export default async function BoardPage() {
         )}
       </section>
 
-      {/* ═══ POSTERS ═════════════════════════════════════════════════════════ */}
-      <section className="mb-14">
-        <SectionHeading title="Posters" count={posters.length} accent="text-orange-600" />
-        {posters.length === 0 ? (
-          <Empty label="posters" />
-        ) : (
-          <div className="grid grid-cols-4 gap-5">
-            {posters.map((item) => (
-              <article
-                key={String(item._id)}
-                className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm"
-              >
-                <div className="relative aspect-3/4 w-full overflow-hidden rounded-xl bg-gray-100">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title || "Poster"}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-medium text-gray-700">
-                    {item.title || <span className="italic text-gray-400">Untitled</span>}
-                  </span>
-                  <Badge on={item.isPublished} />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <MetaRow label="Created" value={fmtDate(item.createdAt)} />
-                  {item.imagePath && <MetaRow label="R2 key" value={<span className="break-all font-mono text-[11px] text-gray-400">{item.imagePath}</span>} />}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ═══ QR CODES ════════════════════════════════════════════════════════ */}
-      <section className="mb-14">
-        <SectionHeading title="QR Codes" count={qrcodes.length} accent="text-teal-600" />
-        {qrcodes.length === 0 ? (
-          <Empty label="QR codes" />
-        ) : (
-          <div className="grid grid-cols-4 gap-5">
-            {qrcodes.map((item) => (
-              <article
-                key={String(item._id)}
-                className="flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm"
-              >
-                {/* QR image — square */}
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    fill
-                    className="object-contain p-4"
-                    unoptimized
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] font-semibold text-gray-800">{item.title}</span>
-                  <Badge on={item.isActive} labels={["Active", "Inactive"]} />
-                </div>
-                <div className="flex flex-col gap-1">
-                  {item.redirectUrl && (
-                    <MetaRow
-                      label="URL"
-                      value={
-                        <a
-                          href={item.redirectUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="break-all text-blue-500 hover:underline"
-                        >
-                          {item.redirectUrl}
-                        </a>
-                      }
-                    />
-                  )}
-                  <MetaRow label="Created" value={fmtDate(item.createdAt)} />
-                  <MetaRow label="R2 key" value={<span className="break-all font-mono text-[11px] text-gray-400">{item.imagePath}</span>} />
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
