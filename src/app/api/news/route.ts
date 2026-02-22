@@ -24,11 +24,12 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     const formData = await request.formData();
-    const title       = formData.get("title")       as string;
-    const description = formData.get("description") as string;
-    const isPublished = formData.get("isPublished") === "true";
-    const priority    = Number(formData.get("priority") ?? 5);
-    const imageFile   = formData.get("image")       as File | null;
+    const title          = formData.get("title")          as string;
+    const description    = formData.get("description")    as string;
+    const isPublished    = formData.get("isPublished") === "true";
+    const priority       = Number(formData.get("priority") ?? 5);
+    const imageFile      = formData.get("image")          as File | null;
+    const imageSourceUrl = (formData.get("imageSourceUrl") as string | null)?.trim() ?? "";
 
     if (!title?.trim()) {
       return NextResponse.json({ success: false, message: "Title is required" }, { status: 400 });
@@ -41,10 +42,14 @@ export async function POST(request: NextRequest) {
     let imagePath = "";
 
     if (imageFile && imageFile.size > 0) {
+      // User uploaded a file directly — store in R2
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       const ext = imageFile.name.split(".").pop();
       imagePath = `news/${uuidv4()}.${ext}`;
       imageUrl = await uploadToR2(buffer, imagePath, imageFile.type);
+    } else if (imageSourceUrl) {
+      // External URL (e.g. from NewsAPI) — store the URL directly, no download
+      imageUrl = imageSourceUrl;
     }
 
     const news = await News.create({ title, description, imageUrl, imagePath, isPublished, priority });

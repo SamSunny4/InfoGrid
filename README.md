@@ -37,6 +37,9 @@ R2_ACCESS_KEY=your_r2_access_key_id
 R2_SECRET_KEY=your_r2_secret_access_key
 R2_BUCKET_NAME=your_bucket_name
 R2_PUBLIC_URL=https://your-public-bucket-url.com   # optional custom domain
+
+# NewsAPI (auto-fetch feature in admin/news)
+NEWSAPI_KEY=your_newsapi_key
 ```
 
 ### 3. Run the development server
