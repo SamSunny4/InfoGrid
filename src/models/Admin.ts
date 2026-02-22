@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export type AdminRole = "superadmin" | "editor";
 
 export interface IAdmin extends Document {
-  email: string;
+  username: string;
   passwordHash: string;
   role: AdminRole;
   lastLoginAt?: Date;
@@ -13,13 +13,14 @@ export interface IAdmin extends Document {
 
 const AdminSchema = new Schema<IAdmin>(
   {
-    email: {
+    username: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, "Username is required"],
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
+      minlength: [3, "Username must be at least 3 characters"],
+      maxlength: [64, "Username cannot exceed 64 characters"],
     },
     passwordHash: {
       type: String,
@@ -39,7 +40,7 @@ const AdminSchema = new Schema<IAdmin>(
 );
 
 // Index for fast login lookups
-AdminSchema.index({ email: 1 });
+AdminSchema.index({ username: 1 });
 
 export const Admin =
   (mongoose.models.Admin as mongoose.Model<IAdmin>) ??

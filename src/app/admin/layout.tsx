@@ -1,6 +1,10 @@
 import "./admin.css";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { getSession } from "@/lib/session";
+import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
   { href: "/admin",         label: "Dashboard", icon: "⊞" },
@@ -10,7 +14,21 @@ const navItems = [
   { href: "/admin/qrcodes", label: "QR Codes",   icon: "⊡" },
 ];
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+
+  // Render bare page for the login route — no sidebar shell
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  // All other /admin pages require an active session
+  const session = await getSession();
+  if (!session.isLoggedIn) {
+    redirect("/admin/login");
+  }
+
   return (
     <div className="admin-root">
       {/* ── Sidebar ───────────────────────────────── */}
@@ -34,6 +52,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="a-sidebar-footer">
+          <div className="a-sidebar-user">
+            <span className="a-sidebar-user-name">{session.username}</span>
+            <span className="a-sidebar-user-role">{session.role}</span>
+          </div>
+          <LogoutButton />
           <Link href="/" className="a-back-link">
             ← Back to Display Board
           </Link>
