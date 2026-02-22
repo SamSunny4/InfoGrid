@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Clock from "@/components/Clock";
 import PosterCarousel from "@/components/PosterCarousel";
-
 /* ── Placeholder posters (replace with real paths) ── */
 const POSTERS: string[] = [
   // Add poster paths here, e.g.:
@@ -23,6 +22,7 @@ export default function Home() {
             height={220}
             priority
             className="object-contain"
+            unoptimized
           />
         </div>
 
