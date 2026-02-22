@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
 import { uploadToR2, deleteFromR2 } from "@/lib/storage";
 import { News } from "@/models/News";
+import { requireAdmin } from "@/lib/auth";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -21,6 +22,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 // ─── PUT update ───────────────────────────────────────────────────────────────
 export async function PUT(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     await connectToDatabase();
     const { id } = await params;
@@ -62,6 +65,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
 // ─── DELETE ───────────────────────────────────────────────────────────────────
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     await connectToDatabase();
     const { id } = await params;

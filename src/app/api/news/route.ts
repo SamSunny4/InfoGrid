@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@/lib/mongodb";
 import { uploadToR2, deleteFromR2 } from "@/lib/storage";
 import { News } from "@/models/News";
+import { requireAdmin } from "@/lib/auth";
 
 // ─── GET all news ───────────────────────────────────────────────────────────
 export async function GET() {
@@ -20,6 +21,8 @@ export async function GET() {
 
 // ─── POST create news ────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     await connectToDatabase();
 
