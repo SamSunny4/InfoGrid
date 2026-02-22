@@ -39,16 +39,29 @@ html, body {
 
 /* ── Poster marquee animation ─────────────────────── */
 @keyframes scroll-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-
 .animate-scroll-left {
   animation: scroll-left var(--duration, 30s) linear infinite;
+}
+
+/* ── Carousel progress bar ────────────────────────── */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.animate-progress {
+  animation: progress-fill var(--progress-duration, 8s) linear forwards;
+}
+
+/* ── Carousel slide-up enter ──────────────────────── */
+@keyframes slide-up-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ── Utility: thin divider ────────────────────────── */
