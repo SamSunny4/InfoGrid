@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import DotQR from "@/components/DotQR";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -137,9 +138,6 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
           }}
         >
           {items.map((item) => {
-            const qrUrl = item.newsUrl
-              ? `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(item.newsUrl)}`
-              : null;
             return (
               <div key={item._id} className="flex h-full w-full shrink-0 bg-white">
                 {/* Left: text + QR */}
@@ -159,9 +157,9 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
                       {item.description}
                     </p>
                   </div>
-                  {qrUrl ? (
+                  {item.newsUrl ? (
                     <div className="flex items-center gap-3">
-                      <Image src={qrUrl} alt="QR Code" width={90} height={90} className="rounded-xl border border-gray-200 shrink-0" unoptimized />
+                      <DotQR value={item.newsUrl} size={90} className="shrink-0" />
                       <span className="text-gray-400 text-[11px] leading-tight">Scan to<br />read more</span>
                     </div>
                   ) : null}
@@ -218,9 +216,6 @@ function EventCarousel({ items }: { items: EventItem[] }) {
             const dateLabel = item.eventDate
               ? new Date(item.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
               : null;
-            const qrUrl = item.eventUrl
-              ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.eventUrl)}`
-              : null;
             return (
               <div key={item._id} className="flex h-full w-full shrink-0 bg-white">
                 {/* Left: text + QR */}
@@ -243,9 +238,9 @@ function EventCarousel({ items }: { items: EventItem[] }) {
                       {item.description}
                     </p>
                   </div>
-                  {qrUrl ? (
+                  {item.eventUrl ? (
                     <div className="flex items-center gap-3">
-                      <Image src={qrUrl} alt="QR Code" width={80} height={80} className="rounded-xl border border-gray-200 shrink-0" unoptimized />
+                      <DotQR value={item.eventUrl} size={80} className="shrink-0" />
                       <span className="text-gray-400 text-[11px] leading-tight">Scan for<br />details</span>
                     </div>
                   ) : null}

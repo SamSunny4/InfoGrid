@@ -11,10 +11,12 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
     "@aws-sdk/lib-storage": "^3.995.0",
+    "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
     "iron-session": "^8.0.4",
     "mongoose": "^9.2.1",
     "next": "16.1.6",
+    "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "uuid": "^13.0.0"
