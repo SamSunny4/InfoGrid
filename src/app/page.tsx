@@ -117,73 +117,70 @@ function NoImage({ className = "" }: { className?: string }) {
   );
 }
 
-// ── News carousel (split layout) ─────────────────────────────────────────────
+// ── News carousel (horizontal sliding track) ─────────────────────────────────
 
 const NEWS_DURATION = 8;
 
 function NewsCarousel({ items }: { items: NewsItem[] }) {
   const { index, animKey, advance } = useCarousel(items.length, NEWS_DURATION);
-  const item = items[index];
-
-  const qrUrl = item.newsUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(item.newsUrl)}`
-    : null;
 
   return (
     <div className="flex flex-col h-full gap-4">
-      {/* Card */}
-      <div
-        key={animKey}
-        className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
-      >
-        {/* Left: text + QR */}
-        <div className="flex flex-col p-7" style={{ width: "55%" }}>
-          {/* Category + title */}
-          <div className="flex flex-col gap-3 mb-3">
-            {item.category && (
-              <span className="self-start bg-orange-500 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
-                {item.category}
-              </span>
-            )}
-            <h3 className="text-gray-900 text-[23px] font-black leading-snug line-clamp-3">
-              {item.title}
-            </h3>
-          </div>
-          {/* Description – fills all remaining space */}
-          <div className="flex-1 overflow-hidden mb-3 min-h-0">
-            <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
-              {item.description}
-            </p>
-          </div>
-          {/* QR */}
-          {qrUrl ? (
-            <div className="flex items-center gap-3">
-              <Image
-                src={qrUrl}
-                alt="QR Code"
-                width={90}
-                height={90}
-                className="rounded-xl border border-gray-200 shrink-0"
-                unoptimized
-              />
-              <span className="text-gray-400 text-[11px] leading-tight">
-                Scan to<br />read more
-              </span>
-            </div>
-          ) : null}
+      {/* Track wrapper */}
+      <div className="relative flex-1 overflow-hidden rounded-3xl shadow-lg">
+        {/* Sliding track — all slides side-by-side */}
+        <div
+          className="flex h-full"
+          style={{
+            transform: `translateX(-${index * 100}%)`,
+            transition: "transform 0.65s cubic-bezier(0.32, 0.72, 0, 1)",
+          }}
+        >
+          {items.map((item) => {
+            const qrUrl = item.newsUrl
+              ? `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(item.newsUrl)}`
+              : null;
+            return (
+              <div key={item._id} className="flex h-full w-full shrink-0 bg-white">
+                {/* Left: text + QR */}
+                <div className="flex flex-col p-7" style={{ width: "55%" }}>
+                  <div className="flex flex-col gap-3 mb-3">
+                    {item.category && (
+                      <span className="self-start bg-orange-500 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+                        {item.category}
+                      </span>
+                    )}
+                    <h3 className="text-gray-900 text-[23px] font-black leading-snug line-clamp-3">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <div className="flex-1 overflow-hidden mb-3 min-h-0">
+                    <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
+                      {item.description}
+                    </p>
+                  </div>
+                  {qrUrl ? (
+                    <div className="flex items-center gap-3">
+                      <Image src={qrUrl} alt="QR Code" width={90} height={90} className="rounded-xl border border-gray-200 shrink-0" unoptimized />
+                      <span className="text-gray-400 text-[11px] leading-tight">Scan to<br />read more</span>
+                    </div>
+                  ) : null}
+                </div>
+                {/* Right: image */}
+                <div className="relative flex-1">
+                  {item.imageUrl ? (
+                    <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
+                  ) : (
+                    <NoImage className="absolute inset-0" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Right: image */}
-        <div className="relative flex-1">
-          {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
-          ) : (
-            <NoImage className="absolute inset-0" />
-          )}
-          {/* Counter badge */}
-          <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
-            {index + 1} / {items.length}
-          </div>
+        {/* Counter badge — floats above the track */}
+        <div className="absolute top-4 right-4 z-10 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full pointer-events-none">
+          {index + 1} / {items.length}
         </div>
       </div>
 
@@ -198,80 +195,76 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
   );
 }
 
-// ── Event carousel (split layout) ────────────────────────────────────────────
+// ── Event carousel (horizontal sliding track) ────────────────────────────────
 
 const EVENT_DURATION = 10;
 
 function EventCarousel({ items }: { items: EventItem[] }) {
   const { index, animKey, advance } = useCarousel(items.length, EVENT_DURATION);
-  const item = items[index];
-
-  const dateLabel = item.eventDate
-    ? new Date(item.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : null;
-
-  const qrUrl = item.eventUrl
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.eventUrl)}`
-    : null;
 
   return (
     <div className="flex flex-col h-full gap-4">
-      {/* Card */}
-      <div
-        key={animKey}
-        className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
-      >
-        {/* Left: text + QR */}
-        <div className="flex flex-col p-6" style={{ width: "55%" }}>
-          {/* Date + title */}
-          <div className="flex flex-col gap-2 mb-3">
-            {dateLabel && (
-              <span className="self-start bg-purple-600 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
-                {dateLabel}
-              </span>
-            )}
-            <h3 className="text-gray-900 text-[24px] font-black uppercase tracking-wide leading-tight line-clamp-2">
-              {item.title}
-            </h3>
-            {item.eventTime && (
-              <p className="text-gray-600 text-[14px] font-semibold">🕐 {item.eventTime}</p>
-            )}
-          </div>
-          {/* Description – fills all remaining space */}
-          <div className="flex-1 overflow-hidden mb-3 min-h-0">
-            <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
-              {item.description}
-            </p>
-          </div>
-          {/* QR */}
-          {qrUrl ? (
-            <div className="flex items-center gap-3">
-              <Image
-                src={qrUrl}
-                alt="QR Code"
-                width={80}
-                height={80}
-                className="rounded-xl border border-gray-200 shrink-0"
-                unoptimized
-              />
-              <span className="text-gray-400 text-[11px] leading-tight">
-                Scan for<br />details
-              </span>
-            </div>
-          ) : null}
+      {/* Track wrapper */}
+      <div className="relative flex-1 overflow-hidden rounded-3xl shadow-lg">
+        {/* Sliding track */}
+        <div
+          className="flex h-full"
+          style={{
+            transform: `translateX(-${index * 100}%)`,
+            transition: "transform 0.65s cubic-bezier(0.32, 0.72, 0, 1)",
+          }}
+        >
+          {items.map((item) => {
+            const dateLabel = item.eventDate
+              ? new Date(item.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+              : null;
+            const qrUrl = item.eventUrl
+              ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.eventUrl)}`
+              : null;
+            return (
+              <div key={item._id} className="flex h-full w-full shrink-0 bg-white">
+                {/* Left: text + QR */}
+                <div className="flex flex-col p-6" style={{ width: "55%" }}>
+                  <div className="flex flex-col gap-2 mb-3">
+                    {dateLabel && (
+                      <span className="self-start bg-purple-600 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+                        {dateLabel}
+                      </span>
+                    )}
+                    <h3 className="text-gray-900 text-[24px] font-black uppercase tracking-wide leading-tight line-clamp-2">
+                      {item.title}
+                    </h3>
+                    {item.eventTime && (
+                      <p className="text-gray-600 text-[14px] font-semibold">🕐 {item.eventTime}</p>
+                    )}
+                  </div>
+                  <div className="flex-1 overflow-hidden mb-3 min-h-0">
+                    <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
+                      {item.description}
+                    </p>
+                  </div>
+                  {qrUrl ? (
+                    <div className="flex items-center gap-3">
+                      <Image src={qrUrl} alt="QR Code" width={80} height={80} className="rounded-xl border border-gray-200 shrink-0" unoptimized />
+                      <span className="text-gray-400 text-[11px] leading-tight">Scan for<br />details</span>
+                    </div>
+                  ) : null}
+                </div>
+                {/* Right: image */}
+                <div className="relative flex-1">
+                  {item.imageUrl ? (
+                    <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
+                  ) : (
+                    <NoImage className="absolute inset-0" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Right: image */}
-        <div className="relative flex-1">
-          {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
-          ) : (
-            <NoImage className="absolute inset-0" />
-          )}
-          {/* Counter badge */}
-          <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
-            {index + 1} / {items.length}
-          </div>
+        {/* Counter badge */}
+        <div className="absolute top-4 right-4 z-10 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full pointer-events-none">
+          {index + 1} / {items.length}
         </div>
       </div>
 
