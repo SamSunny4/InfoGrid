@@ -11,6 +11,7 @@ interface NewsItem {
   description: string;
   imageUrl: string;
   category: string;
+  newsUrl?: string;
   createdAt: string;
 }
 
@@ -21,6 +22,7 @@ interface EventItem {
   imageUrl: string;
   eventDate?: string;
   eventTime?: string;
+  eventUrl?: string;
 }
 
 // ── Carousel hook ─────────────────────────────────────────────────────────────
@@ -115,7 +117,7 @@ function NoImage({ className = "" }: { className?: string }) {
   );
 }
 
-// ── News carousel ─────────────────────────────────────────────────────────────
+// ── News carousel (split layout) ─────────────────────────────────────────────
 
 const NEWS_DURATION = 8;
 
@@ -123,46 +125,62 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
   const { index, animKey, advance } = useCarousel(items.length, NEWS_DURATION);
   const item = items[index];
 
+  const qrUrl = item.newsUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(item.newsUrl)}`
+    : null;
+
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Card */}
-      <div className="relative flex-1 rounded-3xl overflow-hidden shadow-lg bg-gray-100">
-        {/* Slide-up animated content wrapper */}
-        <div key={`slide-${animKey}`} className="absolute inset-0 animate-slide-up">
+      <div
+        key={animKey}
+        className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
+      >
+        {/* Left: text + QR */}
+        <div className="flex flex-col justify-between p-7" style={{ width: "55%" }}>
+          <div className="flex flex-col gap-3">
+            {item.category && (
+              <span className="self-start bg-orange-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+                {item.category}
+              </span>
+            )}
+            <h3 className="text-gray-900 text-[21px] font-black leading-snug line-clamp-3">
+              {item.title}
+            </h3>
+            <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-6">
+              {item.description}
+            </p>
+          </div>
+          {qrUrl ? (
+            <div className="flex items-center gap-3 mt-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrUrl}
+                alt="QR Code"
+                width={90}
+                height={90}
+                className="rounded-xl border border-gray-200 shrink-0"
+              />
+              <span className="text-gray-400 text-[11px] leading-tight">
+                Scan to<br />read more
+              </span>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+
+        {/* Right: image */}
+        <div className="relative flex-1">
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
           ) : (
             <NoImage className="absolute inset-0" />
           )}
-        </div>
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
-
-        {/* Counter badge */}
-        <div className="absolute top-5 right-5 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
-          {index + 1} / {items.length}
-        </div>
-
-        {/* Category badge */}
-        {item.category && (
-          <div className="absolute top-5 left-5">
-            <span className="bg-orange-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
-              {item.category}
-            </span>
+          {/* Counter badge */}
+          <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
+            {index + 1} / {items.length}
           </div>
-        )}
-
-        {/* Text overlay */}
-        <div key={`text-${animKey}`} className="absolute bottom-0 left-0 right-0 p-7 animate-slide-up">
-          <p className="text-white text-[22px] font-bold leading-snug line-clamp-3 drop-shadow-sm">
-            {item.title}
-          </p>
-          {item.description && (
-            <p className="text-white/70 text-[14px] mt-2 line-clamp-2 leading-relaxed">
-              {item.description}
-            </p>
-          )}
         </div>
       </div>
 
@@ -177,7 +195,7 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
   );
 }
 
-// ── Event carousel ────────────────────────────────────────────────────────────
+// ── Event carousel (split layout) ────────────────────────────────────────────
 
 const EVENT_DURATION = 10;
 
@@ -189,44 +207,65 @@ function EventCarousel({ items }: { items: EventItem[] }) {
     ? new Date(item.eventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
 
+  const qrUrl = item.eventUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.eventUrl)}`
+    : null;
+
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Card */}
-      <div className="relative flex-1 rounded-3xl overflow-hidden shadow-lg bg-gray-100">
-        <div key={`slide-${animKey}`} className="absolute inset-0 animate-slide-up">
+      <div
+        key={animKey}
+        className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
+      >
+        {/* Left: text + QR */}
+        <div className="flex flex-col justify-between p-6" style={{ width: "55%" }}>
+          <div className="flex flex-col gap-2">
+            {dateLabel && (
+              <span className="self-start bg-purple-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+                {dateLabel}
+              </span>
+            )}
+            <h3 className="text-gray-900 text-[22px] font-black uppercase tracking-wide leading-tight line-clamp-2">
+              {item.title}
+            </h3>
+            <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-3">
+              {item.description}
+            </p>
+            {item.eventTime && (
+              <p className="text-gray-600 text-[13px] font-semibold mt-1">🕐 {item.eventTime}</p>
+            )}
+          </div>
+          {qrUrl ? (
+            <div className="flex items-center gap-3 mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrUrl}
+                alt="QR Code"
+                width={80}
+                height={80}
+                className="rounded-xl border border-gray-200 shrink-0"
+              />
+              <span className="text-gray-400 text-[11px] leading-tight">
+                Scan for<br />details
+              </span>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+
+        {/* Right: image */}
+        <div className="relative flex-1">
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
           ) : (
             <NoImage className="absolute inset-0" />
           )}
-        </div>
-
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-
-        {/* Counter */}
-        <div className="absolute top-5 right-5 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
-          {index + 1} / {items.length}
-        </div>
-
-        {/* Date badge */}
-        {dateLabel && (
-          <div className="absolute top-5 left-5">
-            <span className="bg-purple-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
-              {dateLabel}
-            </span>
+          {/* Counter badge */}
+          <div className="absolute top-4 right-4 bg-black/30 backdrop-blur-md text-white text-[12px] font-semibold px-3 py-1.5 rounded-full">
+            {index + 1} / {items.length}
           </div>
-        )}
-
-        <div key={`text-${animKey}`} className="absolute bottom-0 left-0 right-0 p-7 animate-slide-up">
-          <h3 className="text-white text-[26px] font-black uppercase tracking-wide leading-tight line-clamp-2">
-            {item.title}
-          </h3>
-          {item.description && (
-            <p className="text-white/70 text-[14px] mt-2 line-clamp-1">{item.description}</p>
-          )}
-          {item.eventTime && (
-            <p className="text-white/80 text-[13px] mt-1 font-semibold">🕐 {item.eventTime}</p>
-          )}
         </div>
       </div>
 
@@ -241,68 +280,7 @@ function EventCarousel({ items }: { items: EventItem[] }) {
   );
 }
 
-// ── Leaderboard ───────────────────────────────────────────────────────────────
-
-const LEADERBOARD = [
-  { rank: 1, name: "Marcus J. Thorne", dept: "Computer Science · Senior",         points: 1240 },
-  { rank: 2, name: "Elena Rostova",    dept: "Biomedical Engineering · Junior",    points: 1195 },
-  { rank: 3, name: "Samuel Lee",       dept: "Architecture · Sophomore",           points: 1082 },
-  { rank: 4, name: "Priya Nair",       dept: "Civil Engineering · Junior",         points:  974 },
-  { rank: 5, name: "David Osei",       dept: "Computer Science · Freshman",        points:  911 },
-];
-
-const RANK_STYLES: Record<number, { badge: string; text: string; label: string }> = {
-  1: { badge: "bg-yellow-400/20 text-yellow-600 border border-yellow-300", text: "text-yellow-600", label: "🥇" },
-  2: { badge: "bg-gray-200/60 text-gray-500 border border-gray-300",       text: "text-gray-500",   label: "🥈" },
-  3: { badge: "bg-amber-400/20 text-amber-600 border border-amber-300",    text: "text-amber-600",  label: "🥉" },
-};
-
-const AVATAR_COLORS = [
-  "from-violet-500 to-indigo-500",
-  "from-pink-500 to-rose-500",
-  "from-emerald-500 to-teal-500",
-  "from-amber-500 to-orange-500",
-  "from-sky-500 to-blue-500",
-];
-
-function LeaderRow({ rank, name, dept, points }: { rank: number; name: string; dept: string; points: number }) {
-  const style = RANK_STYLES[rank];
-  const maxPts = LEADERBOARD[0].points;
-  const pct = Math.round((points / maxPts) * 100);
-
-  return (
-    <div className="flex items-center gap-5 py-4 border-b border-gray-100 last:border-0">
-      {/* Rank */}
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-black ${style ? style.badge : "bg-gray-100 text-gray-400"}`}>
-        {style ? style.label : String(rank).padStart(2, "0")}
-      </div>
-
-      {/* Avatar */}
-      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br ${AVATAR_COLORS[(rank - 1) % AVATAR_COLORS.length]} text-white text-[16px] font-bold shadow-sm`}>
-        {name[0]}
-      </div>
-
-      {/* Name + bar */}
-      <div className="flex-1 min-w-0">
-        <p className="text-gray-900 text-[16px] font-semibold truncate">{name}</p>
-        <p className="text-gray-400 text-[12px] truncate">{dept}</p>
-        {/* Mini bar */}
-        <div className="mt-1.5 h-1 w-full rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className={`h-full rounded-full ${style ? style.text.replace("text-", "bg-") : "bg-blue-400"}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Points */}
-      <div className="text-right shrink-0">
-        <span className="text-gray-900 text-[20px] font-black tabular-nums">{points.toLocaleString()}</span>
-        <span className="text-gray-400 text-[11px] ml-1 font-medium">pts</span>
-      </div>
-    </div>
-  );
-}
+// ── Leaderboard (removed – restore from git if needed) ───────────────────────
 
 // ── Section header ────────────────────────────────────────────────────────────
 
@@ -411,19 +389,15 @@ export default function Home() {
         )}
       </section>
 
-      {/* Divider */}
-      <div className="h-2 bg-[#f5f6fa]" />
-
-      {/* ════ LEADERBOARD (remaining ~743px) ════════════════════ */}
-      <section className="flex-1 px-10 pt-8 pb-8 bg-white">
+      {/* ════ LEADERBOARD: commented out ════════════════════════ */}
+      {/* <section className="flex-1 px-10 pt-8 pb-8 bg-white">
         <SectionHeader label="LeaderBoard" accent="bg-blue-500" />
-
         <div>
           {LEADERBOARD.map((entry) => (
             <LeaderRow key={entry.rank} {...entry} />
           ))}
         </div>
-      </section>
+      </section> */}
 
     </div>
   );
