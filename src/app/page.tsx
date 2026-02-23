@@ -137,22 +137,27 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
         className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
       >
         {/* Left: text + QR */}
-        <div className="flex flex-col justify-between p-7" style={{ width: "55%" }}>
-          <div className="flex flex-col gap-3">
+        <div className="flex flex-col p-7" style={{ width: "55%" }}>
+          {/* Category + title */}
+          <div className="flex flex-col gap-3 mb-3">
             {item.category && (
-              <span className="self-start bg-orange-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+              <span className="self-start bg-orange-500 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
                 {item.category}
               </span>
             )}
-            <h3 className="text-gray-900 text-[21px] font-black leading-snug line-clamp-3">
+            <h3 className="text-gray-900 text-[23px] font-black leading-snug line-clamp-3">
               {item.title}
             </h3>
-            <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-6">
+          </div>
+          {/* Description – fills all remaining space */}
+          <div className="flex-1 overflow-hidden mb-3 min-h-0">
+            <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
               {item.description}
             </p>
           </div>
+          {/* QR */}
           {qrUrl ? (
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrUrl}
@@ -165,9 +170,7 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
                 Scan to<br />read more
               </span>
             </div>
-          ) : (
-            <div />
-          )}
+          ) : null}
         </div>
 
         {/* Right: image */}
@@ -219,25 +222,30 @@ function EventCarousel({ items }: { items: EventItem[] }) {
         className="relative flex-1 flex rounded-3xl overflow-hidden shadow-lg bg-white animate-slide-up"
       >
         {/* Left: text + QR */}
-        <div className="flex flex-col justify-between p-6" style={{ width: "55%" }}>
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-col p-6" style={{ width: "55%" }}>
+          {/* Date + title */}
+          <div className="flex flex-col gap-2 mb-3">
             {dateLabel && (
-              <span className="self-start bg-purple-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
+              <span className="self-start bg-purple-600 text-white text-[12px] font-bold px-3 py-1.5 rounded-full tracking-wide uppercase">
                 {dateLabel}
               </span>
             )}
-            <h3 className="text-gray-900 text-[22px] font-black uppercase tracking-wide leading-tight line-clamp-2">
+            <h3 className="text-gray-900 text-[24px] font-black uppercase tracking-wide leading-tight line-clamp-2">
               {item.title}
             </h3>
-            <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-3">
-              {item.description}
-            </p>
             {item.eventTime && (
-              <p className="text-gray-600 text-[13px] font-semibold mt-1">🕐 {item.eventTime}</p>
+              <p className="text-gray-600 text-[14px] font-semibold">🕐 {item.eventTime}</p>
             )}
           </div>
+          {/* Description – fills all remaining space */}
+          <div className="flex-1 overflow-hidden mb-3 min-h-0">
+            <p className="text-gray-500 text-[14px] leading-relaxed whitespace-pre-line h-full overflow-hidden">
+              {item.description}
+            </p>
+          </div>
+          {/* QR */}
           {qrUrl ? (
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrUrl}
@@ -250,9 +258,7 @@ function EventCarousel({ items }: { items: EventItem[] }) {
                 Scan for<br />details
               </span>
             </div>
-          ) : (
-            <div />
-          )}
+          ) : null}
         </div>
 
         {/* Right: image */}

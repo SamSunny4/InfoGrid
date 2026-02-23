@@ -23,7 +23,7 @@ const NewsSchema = new Schema<INews>(
       type: String,
       required: [true, "Description is required"],
       trim: true,
-      maxlength: [2000, "Description cannot exceed 2000 characters"],
+      maxlength: [4000, "Description cannot exceed 4000 characters"],
     },
     imageUrl:  { type: String, default: "" },
     imagePath: { type: String, default: "" },

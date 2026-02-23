@@ -135,7 +135,7 @@ export default async function BoardPage() {
                 <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
                   {item.title}
                 </h3>
-                <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500">
+                <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500 whitespace-pre-line">
                   {item.description}
                 </p>
                 <div className="mt-auto flex flex-col gap-1 border-t border-gray-100 pt-3">
@@ -172,7 +172,7 @@ export default async function BoardPage() {
                   <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
                     {item.title}
                   </h3>
-                  <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500">
+                  <p className="line-clamp-3 text-[13px] leading-relaxed text-gray-500 whitespace-pre-line">
                     {item.description}
                   </p>
                   <div className="mt-auto flex flex-col gap-1 border-t border-gray-100 pt-3">

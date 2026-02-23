@@ -8,6 +8,7 @@ export interface NewsAPIArticle {
   source: { id: string | null; name: string };
   title: string;
   description: string | null;
+  content: string | null;
   url: string;
   urlToImage: string | null;
   publishedAt: string;

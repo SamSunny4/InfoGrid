@@ -17,6 +17,7 @@ interface FetchedArticle {
   source: { name: string };
   title: string;
   description: string | null;
+  content: string | null;
   url: string;
   urlToImage: string | null;
   publishedAt: string;
@@ -139,11 +140,21 @@ export default function NewsPage() {
     }
   };
 
+  const buildReviewDesc = (article: FetchedArticle): string => {
+    const desc = article.description?.trim() ?? "";
+    // Strip NewsAPI truncation marker like "[+1234 chars]"
+    const rawContent = article.content?.replace(/\[\+\d+ chars\]$/, "").trim() ?? "";
+    if (rawContent && rawContent !== desc) {
+      return `${desc}\n\n${rawContent}`;
+    }
+    return desc;
+  };
+
   const openReview = (article: FetchedArticle, idx: number) => {
     setReviewArticle(article);
     setReviewIdx(idx);
     setReviewTitle(article.title);
-    setReviewDesc(article.description ?? "");
+    setReviewDesc(buildReviewDesc(article));
     setReviewCategory("AI");
     setReviewError("");
   };
@@ -292,7 +303,7 @@ export default function NewsPage() {
               </div>
               <div className="a-field" style={{ marginBottom: 12 }}>
                 <label className="a-label">Description <span className="a-required">*</span></label>
-                <textarea className="a-textarea" rows={3} value={reviewDesc} onChange={(e) => setReviewDesc(e.target.value)} />
+                <textarea className="a-textarea" rows={6} value={reviewDesc} onChange={(e) => setReviewDesc(e.target.value)} />
               </div>
               <div className="a-field" style={{ marginBottom: 12 }}>
                 <label className="a-label">Category</label>
