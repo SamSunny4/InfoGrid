@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    minimumCacheTTL: 86400,
     remotePatterns: [
       {
         // Cloudflare R2 public dev subdomain (pub-<hash>.r2.dev)

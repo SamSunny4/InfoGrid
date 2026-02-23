@@ -158,13 +158,13 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
           {/* QR */}
           {qrUrl ? (
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={qrUrl}
                 alt="QR Code"
                 width={90}
                 height={90}
                 className="rounded-xl border border-gray-200 shrink-0"
+                unoptimized
               />
               <span className="text-gray-400 text-[11px] leading-tight">
                 Scan to<br />read more
@@ -176,7 +176,7 @@ function NewsCarousel({ items }: { items: NewsItem[] }) {
         {/* Right: image */}
         <div className="relative flex-1">
           {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
+            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
           ) : (
             <NoImage className="absolute inset-0" />
           )}
@@ -246,13 +246,13 @@ function EventCarousel({ items }: { items: EventItem[] }) {
           {/* QR */}
           {qrUrl ? (
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={qrUrl}
                 alt="QR Code"
                 width={80}
                 height={80}
                 className="rounded-xl border border-gray-200 shrink-0"
+                unoptimized
               />
               <span className="text-gray-400 text-[11px] leading-tight">
                 Scan for<br />details
@@ -264,7 +264,7 @@ function EventCarousel({ items }: { items: EventItem[] }) {
         {/* Right: image */}
         <div className="relative flex-1">
           {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
+            <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
           ) : (
             <NoImage className="absolute inset-0" />
           )}
